@@ -1,13 +1,22 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
 
+	"github.com/cargonauts/go-dockerclient"
 	"github.com/codegangsta/cli"
-	"github.com/fsouza/go-dockerclient"
 )
+
+func getClient(endpoint string) *docker.Client {
+	client, _ := docker.NewClient(endpoint)
+	return client
+}
+
+func getContainers(client *docker.Client) []docker.APIContainers {
+	containers, _ := client.ListContainers(docker.ListContainersOptions{All: false})
+	return containers
+}
 
 func main() {
 	app := cli.NewApp()
@@ -29,12 +38,12 @@ func main() {
 		log.Printf("Starting %s", app.Usage)
 		log.Printf("Connecting to '%s'", endpoint)
 
-		client, _ := docker.NewClient(endpoint)
-		containers, _ := client.ListContainers(docker.ListContainersOptions{All: false})
+		client := getClient(endpoint)
+		containers := getContainers(client)
 
 		for _, container := range containers {
-			fmt.Println("ID: ", container.ID)
-			fmt.Println("Names: ", container.Names)
+			log.Printf("ID: %s", container.ID)
+			chan c := client.StatsContainer(container.ID)
 		}
 	}
 	app.Run(os.Args)
